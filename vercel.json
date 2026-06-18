@@ -1,12 +1,12 @@
 {
-  "rewrites": [
-    { "source": "/chat", "destination": "/chat.html" },
-    { "source": "/profile", "destination": "/profile.html" },
-    { "source": "/history", "destination": "/history.html" },
-    { "source": "/contacts", "destination": "/contacts.html" },
-    { "source": "/about", "destination": "/about.html" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/admin_pass_ngx", "destination": "/admin.html" },
-    { "source": "/", "destination": "/land.html" }
+  "routes": [
+    { "src": "/chat", "dest": "/chat.html" },
+    { "src": "/profile", "dest": "/profile.html" },
+    { "src": "/history", "dest": "/history.html" },
+    { "src": "/contacts", "dest": "/contacts.html" },
+    { "src": "/about", "dest": "/about.html" },
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/admin_pass_ngx", "dest": "/admin.html" },
+    { "src": "/", "dest": "/land.html" }
   ]
 }
