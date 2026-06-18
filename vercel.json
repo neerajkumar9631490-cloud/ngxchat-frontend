@@ -1,12 +1,12 @@
 {
-  "routes": [
-    { "src": "/", "dest": "/land.html" },
-    { "src": "/chat", "dest": "/chat.html" },
-    { "src": "/profile", "dest": "/profile.html" },
-    { "src": "/history", "dest": "/history.html" },
-    { "src": "/contacts", "dest": "/contacts.html" },
-    { "src": "/about", "dest": "/about.html" },
-    { "src": "/admin", "dest": "/admin.html" },
-    { "src": "/admin_pass_ngx", "dest": "/admin.html" }
+  "redirects": [
+    { "source": "/", "destination": "/land.html", "permanent": false },
+    { "source": "/chat", "destination": "/chat.html", "permanent": false },
+    { "source": "/contacts", "destination": "/contacts.html", "permanent": false },
+    { "source": "/profile", "destination": "/profile.html", "permanent": false },
+    { "source": "/history", "destination": "/history.html", "permanent": false },
+    { "source": "/about", "destination": "/about.html", "permanent": false },
+    { "source": "/admin", "destination": "/admin.html", "permanent": false },
+    { "source": "/admin_pass_ngx", "destination": "/admin.html", "permanent": false }
   ]
 }
