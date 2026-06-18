@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+<title>NGX Chat | Mobile Protocol</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": { "primary-container": "#00ff41", "surface-dim": "#0c160a", "on-surface": "#dae6d2", "background": "#0c160a", "on-surface-variant": "#b9ccb2", "error": "#ffb4ab" },
+            "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+            "fontFamily": { "display-lg": ["Outfit"], "body-md": ["Inter"], "mono-code": ["JetBrains Mono"] }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .neon-pulse { box-shadow: 0 0 15px rgba(0, 255, 65, 0.3); }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(32px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 255, 65, 0.2); border-radius: 10px; }
+        #mobile-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .drawer-open #mobile-drawer { transform: translateX(0); }
+        .drawer-closed #mobile-drawer { transform: translateX(-100%); }
+        .drawer-overlay { transition: opacity 0.3s ease; pointer-events: none; }
+        .drawer-open .drawer-overlay { opacity: 1; pointer-events: auto; }
+        .typing-indicator { background: rgba(0,255,65,0.1); border-radius: 999px; padding: 4px 12px; font-size: 10px; font-family: monospace; color: #00ff41; }
+        .message-bubble { word-break: break-word; overflow-wrap: break-word; white-space: normal; max-width: 100%; text-align: left; }
+        .chat-message-container { max-width: 85%; }
+        @media (max-width: 640px) { .chat-message-container { max-width: 90%; } }
+        .connection-status { position: fixed; bottom: 80px; right: 16px; z-index: 100; background: rgba(0,0,0,0.7); border-radius: 20px; padding: 4px 10px; font-size: 9px; font-family: monospace; backdrop-filter: blur(4px); }
+        .code-block {
+            background: #0a0f0a;
+            border-left: 3px solid #00ff41;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #dae6d2;
+        }
+        .inline-code {
+            background: #1a2618;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            color: #00ff41;
+        }
+        .msg-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .msg-actions-left {
+            justify-content: flex-start;
+        }
+        .msg-actions-right {
+            justify-content: flex-end;
+        }
+        .action-icon {
+            cursor: pointer;
+            font-size: 18px;
+            color: #5a6e5a;
+            transition: all 0.2s ease;
+        }
+        .action-icon:hover {
+            color: #00ff41;
+            transform: scale(1.1);
+        }
+        .action-icon:active {
+            transform: scale(0.95);
+        }
+        .liked {
+            color: #00ff41 !important;
+            font-variation-settings: 'FILL' 1;
+        }
+        .disliked {
+            color: #ffb4ab !important;
+            font-variation-settings: 'FILL' 1;
+        }
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .message-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .message-bubble-container {
+            flex: 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden h-screen drawer-closed">
+<!-- ... (the HTML body is exactly the same as before, no changes) ... -->
+
+<!-- ========== SCRIPT ========== -->
+<script>
+        // ---------- Backend URL (change to your Railway URL) ----------
+        const BACKEND_URL = "https://ngxchat-backend-production.up.railway.app";
+
+        // ---------- Username management ----------
+        const urlParams = new URLSearchParams(window.location.search);
+        let usernameFromUrl = urlParams.get('username');
+        if (usernameFromUrl) {
+            sessionStorage.setItem('ngx_user_identity', usernameFromUrl);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        let currentUsername = sessionStorage.getItem('ngx_user_identity');
+        if (!currentUsername) window.location.href = '/';
+
+        // ---------- History storage (respects setting from profile) ----------
+        const STORAGE_KEY = 'ngx_chat_history_global';
+        function isHistoryEnabled() {
+            return localStorage.getItem('ngx_store_history') !== 'false';
+        }
+        function loadMessageHistory() {
+            if (!isHistoryEnabled()) return [];
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch(e) { return []; }
+            }
+            return [];
+        }
+        function saveMessageHistory(messages) {
+            if (!isHistoryEnabled()) return;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        }
+        function addMessageToHistory(username, text, timestamp) {
+            if (!isHistoryEnabled()) return;
+            let history = loadMessageHistory();
+            history.push({ username, text, timestamp, room: currentRoom === 'global' ? 'global' : currentRoom });
+            if (history.length > 500) history = history.slice(-500);
+            saveMessageHistory(history);
+        }
+
+        function restoreHistory() {
+            if (!isHistoryEnabled()) return;
+            const history = loadMessageHistory();
+            history.forEach(msg => {
+                appendMessage(msg.username, msg.text, msg.timestamp, false);
+            });
+        }
+
+        // ---------- Code block formatting ----------
+        function formatMessage(text) {
+            const codeBlockRegex = /```([\s\S]*?)```/g;
+            let lastIndex = 0;
+            let result = [];
+            let match;
+            while ((match = codeBlockRegex.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    let before = text.substring(lastIndex, match.index);
+                    result.push({ type: 'text', content: before });
+                }
+                result.push({ type: 'code', content: match[1].trim() });
+                lastIndex = match.index + match[0].length;
+            }
+            if (lastIndex < text.length) {
+                result.push({ type: 'text', content: text.substring(lastIndex) });
+            }
+            if (result.length === 0) return { type: 'text', content: text };
+            return { type: 'mixed', parts: result };
+        }
+
+        function renderMessageContent(formatted) {
+            if (formatted.type === 'text') {
+                let html = escapeHtml(formatted.content);
+                html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+                return html;
+            } else if (formatted.type === 'mixed') {
+                let html = '';
+                for (const part of formatted.parts) {
+                    if (part.type === 'text') {
+                        let txt = escapeHtml(part.content);
+                        txt = txt.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+                        html += txt;
+                    } else {
+                        html += `<pre class="code-block">${escapeHtml(part.content)}</pre>`;
+                    }
+                }
+                return html;
+            }
+            return escapeHtml(formatted.content);
+        }
+
+        // ---------- Message actions ----------
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-black/80 text-primary-container px-4 py-2 rounded-full text-xs font-mono-code z-[100] backdrop-blur-sm border border-primary-container/30';
+            toast.innerText = message;
+            if (isError) toast.style.color = '#ffb4ab';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('✓ Copied to clipboard');
+            } catch (err) {
+                showToast('Failed to copy', true);
+            }
+        }
+
+        function getReactionKey(messageId) {
+            return `reaction_${messageId}`;
+        }
+        function setReaction(messageId, type, value) {
+            localStorage.setItem(getReactionKey(messageId), JSON.stringify({ type, value }));
+        }
+        function getReaction(messageId) {
+            const stored = localStorage.getItem(getReactionKey(messageId));
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch(e) { return null; }
+            }
+            return null;
+        }
+
+        let messageCounter = 0;
+        function generateMessageId() {
+            return Date.now() + '_' + (messageCounter++);
+        }
+
+        let socket = null;
+        let currentRoom = "global";
+        let typingTimer = null;
+        let isTyping = false;
+
+        const chatContainer = document.getElementById('chat-messages');
+        const inputBox = document.getElementById('chat-input');
+        const charCountSpan = document.getElementById('char-count');
+        const sendBtn = document.getElementById('send-btn');
+        const roomTitle = document.getElementById('room-title');
+        const currentRoomDisplay = document.getElementById('current-room-display');
+        const typingIndicatorDiv = document.getElementById('typing-indicator');
+        const userListContainer = document.getElementById('user-list-container');
+        const connStatusSpan = document.getElementById('conn-status');
+
+        function setConnectionStatus(status, isError = false) {
+            connStatusSpan.innerText = status;
+            connStatusSpan.style.color = isError ? '#ffb4ab' : '#00ff41';
+            setTimeout(() => {
+                if (connStatusSpan.innerText === status) connStatusSpan.style.color = '';
+            }, 2000);
+        }
+
+        function clearMessages() { chatContainer.innerHTML = ''; }
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+
+        function appendMessage(username, text, timestamp, isSystem = false, messageId = null) {
+            if (isSystem && (text.includes(`${currentUsername} joined`) || text.includes(`${currentUsername} left`))) return;
+            const messageDiv = document.createElement('div');
+            const timeStr = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+            const msgId = messageId || generateMessageId();
+            
+            if (isSystem) {
+                messageDiv.className = "flex justify-center my-1";
+                messageDiv.innerHTML = `<div class="px-3 py-0.5 rounded-full bg-white/5 border border-white/5 text-[9px] font-mono-code text-on-surface-variant/80">${escapeHtml(text)}</div>`;
+            } else {
+                const isOwn = (username === currentUsername);
+                const containerClass = "chat-message-container " + (isOwn ? "ml-auto" : "");
+                const formattedMessage = formatMessage(text);
+                const messageHtml = renderMessageContent(formattedMessage);
+                
+                const savedReaction = getReaction(msgId);
+                const likeClass = savedReaction && savedReaction.type === 'like' ? 'liked' : '';
+                const dislikeClass = savedReaction && savedReaction.type === 'dislike' ? 'disliked' : '';
+                const actionsAlignClass = isOwn ? 'msg-actions-right' : 'msg-actions-left';
+                
+                if (isOwn) {
+                    messageDiv.className = containerClass;
+                    messageDiv.innerHTML = `
+                        <div class="message-wrapper">
+                            <div class="message-row" style="justify-content: flex-end;">
+                                <div class="message-bubble-container">
+                                    <div class="flex items-baseline justify-end gap-2 px-1 mb-1">
+                                        <span class="text-[8px] text-on-surface-variant opacity-40">${timeStr}</span>
+                                        <span class="text-[9px] font-bold text-primary-fixed">${escapeHtml(username)}</span>
+                                    </div>
+                                    <div class="bg-surface-dim border border-primary-container/40 rounded-2xl rounded-br-none px-3 py-2 neon-pulse message-bubble">
+                                        <div class="text-sm leading-relaxed text-primary">${messageHtml}</div>
+                                    </div>
+                                    <div class="msg-actions ${actionsAlignClass}">
+                                        <span class="material-symbols-outlined action-icon copy-icon" data-msg-id="${msgId}" data-msg-text="${escapeHtml(text).replace(/"/g, '&quot;')}">content_copy</span>
+                                        <span class="material-symbols-outlined action-icon like-icon ${likeClass}" data-msg-id="${msgId}" data-msg-type="like">thumb_up</span>
+                                        <span class="material-symbols-outlined action-icon dislike-icon ${dislikeClass}" data-msg-id="${msgId}" data-msg-type="dislike">thumb_down</span>
+                                    </div>
+                                </div>
+                                <div class="w-7 h-7 rounded-full border border-primary-container/30 shrink-0 flex items-center justify-center bg-surface-container">
+                                    <span class="material-symbols-outlined text-primary-container text-sm">account_circle</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.className = containerClass;
+                    messageDiv.innerHTML = `
+                        <div class="message-wrapper">
+                            <div class="message-row">
+                                <div class="w-7 h-7 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-surface-container">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-sm">person</span>
+                                </div>
+                                <div class="message-bubble-container">
+                                    <div class="flex items-baseline gap-2 px-1 mb-1">
+                                        <span class="text-[9px] font-bold text-primary-container">${escapeHtml(username)}</span>
+                                        <span class="text-[8px] text-on-surface-variant opacity-40">${timeStr}</span>
+                                    </div>
+                                    <div class="bg-surface-container-high border border-white/5 rounded-2xl rounded-bl-none px-3 py-2 glass-panel message-bubble">
+                                        <div class="text-sm leading-relaxed">${messageHtml}</div>
+                                    </div>
+                                    <div class="msg-actions ${actionsAlignClass}">
+                                        <span class="material-symbols-outlined action-icon copy-icon" data-msg-id="${msgId}" data-msg-text="${escapeHtml(text).replace(/"/g, '&quot;')}">content_copy</span>
+                                        <span class="material-symbols-outlined action-icon like-icon ${likeClass}" data-msg-id="${msgId}" data-msg-type="like">thumb_up</span>
+                                        <span class="material-symbols-outlined action-icon dislike-icon ${dislikeClass}" data-msg-id="${msgId}" data-msg-type="dislike">thumb_down</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            const copyBtn = messageDiv.querySelector('.copy-icon');
+            const likeBtn = messageDiv.querySelector('.like-icon');
+            const dislikeBtn = messageDiv.querySelector('.dislike-icon');
+            
+            if (copyBtn) {
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const msgText = copyBtn.getAttribute('data-msg-text');
+                    copyToClipboard(msgText);
+                });
+            }
+            if (likeBtn) {
+                likeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const msgId = likeBtn.getAttribute('data-msg-id');
+                    const currentReaction = getReaction(msgId);
+                    if (currentReaction && currentReaction.type === 'like') {
+                        localStorage.removeItem(getReactionKey(msgId));
+                        likeBtn.classList.remove('liked');
+                        showToast('👍 Like removed');
+                    } else {
+                        localStorage.removeItem(getReactionKey(msgId));
+                        setReaction(msgId, 'like', true);
+                        likeBtn.classList.add('liked');
+                        if (dislikeBtn) dislikeBtn.classList.remove('disliked');
+                        showToast('👍 Liked');
+                    }
+                });
+            }
+            if (dislikeBtn) {
+                dislikeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const msgId = dislikeBtn.getAttribute('data-msg-id');
+                    const currentReaction = getReaction(msgId);
+                    if (currentReaction && currentReaction.type === 'dislike') {
+                        localStorage.removeItem(getReactionKey(msgId));
+                        dislikeBtn.classList.remove('disliked');
+                        showToast('👎 Dislike removed');
+                    } else {
+                        localStorage.removeItem(getReactionKey(msgId));
+                        setReaction(msgId, 'dislike', true);
+                        dislikeBtn.classList.add('disliked');
+                        if (likeBtn) likeBtn.classList.remove('liked');
+                        showToast('👎 Disliked');
+                    }
+                });
+            }
+        }
+
+        function updateUserList(users) {
+            if (!userListContainer) return;
+            const otherUsers = users.filter(u => u !== currentUsername);
+            if (otherUsers.length === 0) { userListContainer.innerHTML = '<div class="px-3 py-1 text-[9px] text-on-surface-variant/40">No active users</div>'; return; }
+            let html = '';
+            otherUsers.forEach(user => {
+                html += `<div class="bg-primary-container/5 border-l-2 border-primary-container px-3 py-2"><div class="flex items-center gap-2"><div class="w-8 h-8 shrink-0 rounded-lg bg-surface-container-high flex items-center justify-center border border-primary-container/20"><span class="material-symbols-outlined text-primary-container text-sm">person</span></div><div class="flex-1 overflow-hidden"><h3 class="text-xs font-bold text-on-surface truncate">${escapeHtml(user)}</h3><p class="text-[9px] text-on-surface-variant truncate">online</p></div></div></div>`;
+            });
+            userListContainer.innerHTML = html;
+        }
+
+        function onRoomChanged(roomCode) {
+            currentRoom = roomCode || 'global';
+            const displayName = (currentRoom === 'global') ? 'GLOBAL_MESSAGE' : `PRIVATE: ${currentRoom}`;
+            roomTitle.innerText = displayName;
+            currentRoomDisplay.innerText = displayName;
+            clearMessages();
+            if (currentRoom === 'global') restoreHistory();
+            appendMessage('system', `You are now in ${displayName}`, Date.now(), true);
+        }
+
+        function restoreRoom() {
+            if (currentRoom && currentRoom !== 'global') {
+                socket.emit('join_room', { room: currentRoom });
+            } else {
+                socket.emit('join_global');
+            }
+        }
+
+        function initSocket() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            // ---------- Use the BACKEND_URL ----------
+            socket = io(BACKEND_URL, {
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000
+            });
+            socket.on('connect', () => {
+                setConnectionStatus('CONNECTED');
+                if (currentUsername) {
+                    socket.emit('join', { username: currentUsername }, () => restoreRoom());
+                } else {
+                    window.location.href = '/';
+                }
+            });
+            socket.on('connect_error', () => setConnectionStatus('RECONNECTING...', true));
+            socket.on('disconnect', () => setConnectionStatus('DISCONNECTED', true));
+            socket.on('join_error', (data) => { alert(data.message); sessionStorage.removeItem('ngx_user_identity'); window.location.href = '/'; });
+            socket.on('join_success', (data) => { console.log('Join success', data); });
+            socket.on('message', (msg) => { 
+                appendMessage(msg.username, msg.text, msg.timestamp, false);
+                addMessageToHistory(msg.username, msg.text, msg.timestamp);
+            });
+            socket.on('system_message', (sysMsg) => { appendMessage('system', sysMsg.text, sysMsg.timestamp, true); });
+            socket.on('user_list', (data) => { updateUserList(data.users); });
+            socket.on('typing_update', (data) => {
+                if (data.users.length > 0) {
+                    typingIndicatorDiv.innerText = `${data.users.join(', ')} is typing...`;
+                    typingIndicatorDiv.classList.remove('hidden');
+                } else {
+                    typingIndicatorDiv.classList.add('hidden');
+                }
+            });
+            socket.on('room_created', (data) => { onRoomChanged(data.room_code); appendMessage('system', `Private room created. Code: ${data.room_code}`, Date.now(), true); });
+            socket.on('room_joined', (data) => { onRoomChanged(data.room_code); });
+            socket.on('room_error', (data) => { alert(data.message); });
+        }
+
+        function reconnect() { initSocket(); }
+        function sendMessage() {
+            if (!socket || !socket.connected) { setConnectionStatus('NOT CONNECTED', true); alert('Not connected to server. Please click Reconnect button.'); return; }
+            let text = inputBox.value.trim();
+            if (text === '') return;
+            socket.emit('message', { text: text });
+            inputBox.value = '';
+            inputBox.style.height = 'auto';
+            charCountSpan.innerText = '0/2000';
+            if (isTyping) { socket.emit('typing', { typing: false }); isTyping = false; clearTimeout(typingTimer); }
+        }
+        function handleTyping() {
+            if (!socket || !socket.connected) return;
+            if (!isTyping) { isTyping = true; socket.emit('typing', { typing: true }); }
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => { if (isTyping) { isTyping = false; socket.emit('typing', { typing: false }); } }, 1500);
+        }
+        function createRoom() { if (socket && socket.connected) socket.emit('create_room'); else alert('Not connected'); }
+        function joinRoom() { let code = prompt("Enter room code:"); if (code && code.trim() && socket && socket.connected) socket.emit('join_room', { room: code.trim().toUpperCase() }); else if (!socket || !socket.connected) alert('Not connected'); }
+        function joinGlobal() { if (socket && socket.connected) socket.emit('join_global'); else alert('Not connected'); }
+        function toggleDrawer() { document.body.classList.toggle('drawer-open'); document.body.classList.toggle('drawer-closed'); }
+
+        document.getElementById('drawer-backdrop').addEventListener('click', toggleDrawer);
+        inputBox.addEventListener('input', function() { this.style.height = 'auto'; const newHeight = Math.min(this.scrollHeight, 96); this.style.height = newHeight + 'px'; charCountSpan.innerText = `${this.value.length}/2000`; handleTyping(); });
+        sendBtn.addEventListener('click', sendMessage);
+        document.getElementById('create-room-btn').addEventListener('click', createRoom);
+        document.getElementById('join-room-btn').addEventListener('click', joinRoom);
+        document.getElementById('global-chat-btn').addEventListener('click', joinGlobal);
+        document.getElementById('manual-reconnect').addEventListener('click', reconnect);
+        inputBox.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+        const observer = new MutationObserver(() => { document.body.style.overflow = document.body.classList.contains('drawer-open') ? 'hidden' : ''; });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        window.addEventListener('visibilitychange', () => {
+            if (!document.hidden && (!socket || !socket.connected)) initSocket();
+        });
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted || (socket && !socket.connected)) initSocket();
+        });
+        setInterval(() => {
+            if (socket && !socket.connected) initSocket();
+        }, 15000);
+
+        initSocket();
+    </script>
+</body>
+</html>

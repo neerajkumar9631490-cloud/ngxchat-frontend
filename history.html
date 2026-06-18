@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+<title>NGX Chat | History Vault</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": { "primary-container": "#00ff41", "surface-dim": "#0c160a", "on-surface": "#dae6d2", "background": "#0c160a", "on-surface-variant": "#b9ccb2", "error": "#ffb4ab", "surface-container-high": "#222d20", "surface-container-highest": "#2d382a" },
+            "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+            "fontFamily": { "display-lg": ["Outfit"], "body-md": ["Inter"], "mono-code": ["JetBrains Mono"] }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(0, 255, 65, 0.3);
+            background: rgba(0, 255, 65, 0.02);
+        }
+        body {
+            background-color: #0c160a;
+            color: #dae6d2;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 255, 65, 0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<header class="fixed top-0 w-full z-50 bg-surface-dim/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-4 py-3 h-14">
+<div class="flex items-center gap-3">
+<a href="/chat" class="transition-all duration-200 active:scale-95 text-on-surface-variant hover:text-primary-container">
+<span class="material-symbols-outlined">arrow_back</span>
+</a>
+<h1 class="font-display-lg text-lg text-primary-container tracking-tighter">History Vault</h1>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">history</span>
+</div>
+</header>
+<main class="pt-20 pb-24 px-4 max-w-lg mx-auto">
+    <div class="mb-6">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-base">search</span>
+            <input type="text" id="search-input" class="w-full bg-surface-container-high border border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/20" placeholder="Search messages...">
+        </div>
+    </div>
+    <div id="history-container" class="space-y-6">
+        <div class="text-center text-on-surface-variant/50 py-10">Loading history...</div>
+    </div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 py-1.5 h-14 bg-surface-container-highest/95 backdrop-blur-xl border-t border-white/10 z-[50] shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+<a href="/about" class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant active:bg-white/5 rounded-lg transition-all"><span class="material-symbols-outlined text-base">info</span><span class="font-label-caps text-[8px] mt-0.5">About</span></a>
+<a href="/chat" class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant active:bg-white/5 rounded-lg transition-all"><span class="material-symbols-outlined text-base">chat_bubble</span><span class="font-label-caps text-[8px] mt-0.5">Chat</span></a>
+<a href="/profile" class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant active:bg-white/5 rounded-lg transition-all"><span class="material-symbols-outlined text-base">person</span><span class="font-label-caps text-[8px] mt-0.5">Profile</span></a>
+</nav>
+<script>
+        const STORAGE_KEY = 'ngx_chat_history_global';
+        let allMessages = [];
+
+        function loadHistory() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    allMessages = JSON.parse(stored);
+                } catch(e) { allMessages = []; }
+            }
+            renderHistory();
+        }
+
+        function groupByDate(messages) {
+            const groups = {};
+            messages.forEach(msg => {
+                const date = new Date(msg.timestamp).toLocaleDateString('en-CA'); // YYYY-MM-DD
+                if (!groups[date]) groups[date] = [];
+                groups[date].push(msg);
+            });
+            return groups;
+        }
+
+        function renderHistory(filter = '') {
+            const container = document.getElementById('history-container');
+            if (!container) return;
+            if (!allMessages.length) {
+                container.innerHTML = `<div class="flex flex-col items-center py-16 text-center"><span class="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-3">history_off</span><h3 class="text-base font-semibold">No chat history found</h3><p class="text-xs text-on-surface-variant/60">Start chatting to see messages here</p></div>`;
+                return;
+            }
+            let filtered = allMessages;
+            if (filter) {
+                const lowerFilter = filter.toLowerCase();
+                filtered = allMessages.filter(msg => msg.text.toLowerCase().includes(lowerFilter) || msg.username.toLowerCase().includes(lowerFilter));
+            }
+            const grouped = groupByDate(filtered);
+            const sortedDates = Object.keys(grouped).sort().reverse();
+            let html = '';
+            for (const date of sortedDates) {
+                const messages = grouped[date];
+                const displayDate = new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+                html += `<div class="relative my-4"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div><div class="relative flex justify-center"><span class="bg-surface-dim px-3 py-1 text-[9px] font-mono-code text-primary-container/60">${displayDate}</span></div></div>`;
+                messages.forEach(msg => {
+                    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+                    const isOwn = (msg.username === localStorage.getItem('ngx_user_identity'));
+                    html += `
+                        <div class="glass-card p-3 rounded-xl mb-3">
+                            <div class="flex justify-between items-start mb-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm ${isOwn ? 'text-primary-container' : 'text-on-surface-variant'}">${isOwn ? 'account_circle' : 'person'}</span>
+                                    <span class="text-sm font-semibold ${isOwn ? 'text-primary-fixed' : 'text-primary-container'}">${escapeHtml(msg.username)}</span>
+                                </div>
+                                <span class="text-[9px] font-mono-code text-on-surface-variant/60">${time}</span>
+                            </div>
+                            <p class="text-sm text-on-surface leading-relaxed break-words">${escapeHtml(msg.text)}</p>
+                            <div class="mt-2 flex gap-2">
+                                <span class="text-[8px] font-mono-code text-primary-container/70 bg-primary-container/10 px-2 py-0.5 rounded-full">${msg.room === 'global' ? 'GLOBAL' : 'PRIVATE'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => renderHistory(e.target.value));
+        }
+        loadHistory();
+    </script>
+</body>
+</html>

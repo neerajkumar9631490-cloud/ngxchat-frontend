@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | NGX Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#313030",
+                      "tertiary": "#fcf8f8",
+                      "on-tertiary": "#313030",
+                      "primary-container": "#00ff41",
+                      "error-container": "#93000a",
+                      "surface-dim": "#0c160a",
+                      "surface-container-low": "#141e12",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#4a4949",
+                      "on-error": "#690005",
+                      "surface-variant": "#2d382a",
+                      "on-secondary-fixed-variant": "#474646",
+                      "surface-container": "#182216",
+                      "on-secondary-container": "#bab8b7",
+                      "on-primary": "#003907",
+                      "outline": "#84967e",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "on-tertiary-container": "#626060",
+                      "on-primary-container": "#007117",
+                      "on-surface": "#dae6d2",
+                      "secondary-fixed": "#e5e2e1",
+                      "secondary": "#c8c6c5",
+                      "surface-tint": "#00e639",
+                      "primary": "#ebffe2",
+                      "surface-container-lowest": "#071106",
+                      "on-primary-fixed": "#002203",
+                      "inverse-surface": "#dae6d2",
+                      "on-background": "#dae6d2",
+                      "inverse-on-surface": "#283326",
+                      "on-primary-fixed-variant": "#00530e",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "inverse-primary": "#006e16",
+                      "background": "#0c160a",
+                      "primary-fixed": "#72ff70",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "primary-fixed-dim": "#00e639",
+                      "on-secondary-fixed": "#1c1b1b",
+                      "tertiary-fixed": "#e5e2e1",
+                      "on-tertiary-fixed": "#1c1b1b",
+                      "error": "#ffb4ab",
+                      "tertiary-container": "#dfdcdb",
+                      "surface": "#0c160a",
+                      "outline-variant": "#3b4b37",
+                      "on-surface-variant": "#b9ccb2",
+                      "surface-bright": "#313c2e",
+                      "surface-container-highest": "#2d382a",
+                      "surface-container-high": "#222d20"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "container-padding-desktop": "40px",
+                      "unit": "4px",
+                      "stack-lg": "32px",
+                      "gutter": "24px",
+                      "container-padding-mobile": "20px",
+                      "stack-sm": "8px"
+              },
+              "fontFamily": {
+                      "display-lg-mobile": ["Outfit"],
+                      "display-lg": ["Outfit"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "mono-code": ["JetBrains Mono"],
+                      "headline-md": ["Outfit"],
+                      "label-caps": ["Inter"]
+              },
+              "fontSize": {
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "mono-code": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(32px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .neon-border-focus:focus-within {
+            border-color: #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+        }
+
+        .input-glow:focus {
+            box-shadow: inset 0 0 8px rgba(0, 255, 65, 0.1);
+        }
+
+        .entrance-fade {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container selection:text-on-primary min-h-screen overflow-hidden flex items-center justify-center p-4">
+<!-- Background Shader Layer -->
+<div class="absolute inset-0 w-full h-full opacity-60 pointer-events-none">
+<canvas id="shader-canvas-ANIMATION_2" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_2');
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float time = u_time * 0.2;
+    float noise = sin(uv.x * 10.0 + time) * cos(uv.y * 8.0 - time) * 0.5 + 0.5;
+    noise += sin(uv.y * 15.0 + time * 1.5) * 0.2;
+    vec3 color = vec3(0.02, 0.04, 0.02); 
+    vec3 neonGreen = vec3(0.0, 1.0, 0.25);
+    float glow = pow(noise, 4.0) * 0.15;
+    color += neonGreen * glow;
+    float scanline = sin(gl_FragCoord.y * 0.8) * 0.02;
+    color -= scanline;
+    gl_FragColor = vec4(color, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<div class="fixed inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none"></div>
+<main class="relative z-10 w-full max-w-sm">
+<!-- Brand Identity - Scaled down -->
+<div class="mb-6 text-center entrance-fade" style="animation-delay: 0.1s;">
+<h1 class="font-display-lg text-3xl text-primary-container tracking-tighter italic mb-0 drop-shadow-[0_0_10px_rgba(0,255,65,0.3)]">
+                NGX Chat
+            </h1>
+<p class="font-label-caps text-[10px] text-on-surface-variant tracking-[0.2em] uppercase mt-1">
+                Secure Uplink Protocol v4.2
+            </p>
+</div>
+<!-- Login Card - Compact -->
+<div class="glass-panel rounded-xl p-6 entrance-fade shadow-2xl" style="animation-delay: 0.2s;">
+<form class="space-y-5" id="loginForm">
+<div class="space-y-1.5">
+<label class="font-label-caps text-[10px] text-primary-fixed-dim ml-1" for="username">
+                        IDENTIFICATION TOKEN
+                    </label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary-container transition-colors text-base">
+                            alternate_email
+                        </span>
+<input class="w-full bg-surface-container border border-white/5 rounded-lg py-2.5 pl-9 pr-3 font-body-md text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary-container focus:ring-0 input-glow transition-all duration-300" id="username" name="username" placeholder="Enter username..." required="" type="text"/>
+</div>
+<p class="text-error text-[10px] font-label-caps mt-1 hidden" id="error-message">INVALID PROTOCOL: USERNAME REQUIRED</p>
+</div>
+<button class="w-full bg-primary-container text-on-primary py-2.5 rounded-lg font-headline-md text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all duration-300" id="joinButton" type="submit">
+<span>Join Network</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</form>
+<div class="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse shadow-[0_0_8px_rgba(0,255,65,0.8)]"></span>
+<span class="font-label-caps text-[9px] text-on-surface-variant">NODE: GLOBAL_NORTH</span>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-help hover:text-primary-container transition-colors">info</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-primary-container transition-colors">settings_ethernet</span>
+</div>
+</div>
+</div>
+<!-- Footer - Smaller -->
+<div class="mt-6 text-center entrance-fade" style="animation-delay: 0.3s;">
+<p class="font-mono-code text-[9px] text-on-surface-variant/30 uppercase tracking-widest">
+                ENCRYPTED_HANDSHAKE_PENDING... [AES-256]
+            </p>
+</div>
+</main>
+<div class="fixed inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] z-50 opacity-20"></div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const errorMessage = document.getElementById('error-message');
+            const joinButton = document.getElementById('joinButton');
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = usernameInput.value.trim();
+                if (username.length === 0) {
+                    errorMessage.classList.remove('hidden');
+                    usernameInput.classList.add('border-error');
+                    loginForm.parentElement.classList.add('animate-[shake_0.4s_ease-in-out]');
+                    setTimeout(() => {
+                        loginForm.parentElement.classList.remove('animate-[shake_0.4s_ease-in-out]');
+                    }, 400);
+                    return;
+                }
+                joinButton.innerHTML = `
+                    <span class="material-symbols-outlined animate-spin text-base">refresh</span>
+                    <span>Establishing Link...</span>
+                `;
+                joinButton.classList.add('opacity-80', 'cursor-not-allowed');
+                
+                // Store username and redirect with URL parameter (tab-isolated)
+                setTimeout(() => {
+                    document.body.style.transition = 'opacity 0.5s ease-out';
+                    document.body.style.opacity = '0';
+                    setTimeout(() => {
+                        window.location.href = `/chat?username=${encodeURIComponent(username)}`;
+                    }, 500);
+                }, 1200);
+            });
+            usernameInput.addEventListener('input', () => {
+                errorMessage.classList.add('hidden');
+                usernameInput.classList.remove('border-error');
+            });
+        });
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

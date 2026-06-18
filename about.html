@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NGX Chat | About</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#313030",
+                    "tertiary": "#fcf8f8",
+                    "on-tertiary": "#313030",
+                    "primary-container": "#00ff41",
+                    "error-container": "#93000a",
+                    "surface-dim": "#0c160a",
+                    "surface-container-low": "#141e12",
+                    "on-error-container": "#ffdad6",
+                    "secondary-container": "#4a4949",
+                    "on-error": "#690005",
+                    "surface-variant": "#2d382a",
+                    "on-secondary-fixed-variant": "#474646",
+                    "surface-container": "#182216",
+                    "on-secondary-container": "#bab8b7",
+                    "on-primary": "#003907",
+                    "outline": "#84967e",
+                    "tertiary-fixed-dim": "#c9c6c5",
+                    "on-tertiary-container": "#626060",
+                    "on-primary-container": "#007117",
+                    "on-surface": "#dae6d2",
+                    "secondary-fixed": "#e5e2e1",
+                    "secondary": "#c8c6c5",
+                    "surface-tint": "#00e639",
+                    "primary": "#ebffe2",
+                    "surface-container-lowest": "#071106",
+                    "on-primary-fixed": "#002203",
+                    "inverse-surface": "#dae6d2",
+                    "on-background": "#dae6d2",
+                    "inverse-on-surface": "#283326",
+                    "on-primary-fixed-variant": "#00530e",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "inverse-primary": "#006e16",
+                    "background": "#0c160a",
+                    "primary-fixed": "#72ff70",
+                    "on-tertiary-fixed-variant": "#474646",
+                    "primary-fixed-dim": "#00e639",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "tertiary-fixed": "#e5e2e1",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "error": "#ffb4ab",
+                    "tertiary-container": "#dfdcdb",
+                    "surface": "#0c160a",
+                    "outline-variant": "#3b4b37",
+                    "on-surface-variant": "#b9ccb2",
+                    "surface-bright": "#313c2e",
+                    "surface-container-highest": "#2d382a",
+                    "surface-container-high": "#222d20"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-md": "16px",
+                    "container-padding-desktop": "40px",
+                    "unit": "4px",
+                    "stack-lg": "32px",
+                    "gutter": "24px",
+                    "container-padding-mobile": "20px",
+                    "stack-sm": "8px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Outfit"],
+                    "body-md": ["Inter"],
+                    "mono-code": ["JetBrains Mono"],
+                    "headline-md": ["Outfit"],
+                    "label-caps": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+        }
+        .glass-card {
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        body {
+            background-color: #0c160a;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Header with Back Button -->
+<header class="fixed top-0 w-full z-50 bg-surface-dim/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-4 py-3 h-14">
+<div class="flex items-center gap-3">
+<a href="/chat" class="transition-all duration-200 active:scale-95 text-on-surface-variant hover:text-primary-container">
+<span class="material-symbols-outlined">arrow_back</span>
+</a>
+<h1 class="font-display-lg text-lg text-primary-container tracking-tighter">About NGX</h1>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">info</span>
+</div>
+</header>
+
+<!-- Main Content -->
+<main class="pt-20 pb-32 px-4 max-w-md mx-auto">
+    <div class="glass-card rounded-xl p-5 space-y-5">
+        <div class="text-center">
+            <div class="font-display-lg text-2xl text-primary-container tracking-tighter italic mb-1">NGX Chat</div>
+            <div class="font-label-caps text-[9px] text-on-surface-variant tracking-wider">SECURE UPLINK PROTOCOL v4.2</div>
+        </div>
+        
+        <div class="border-t border-white/10 pt-4">
+            <h2 class="font-headline-md text-base text-primary-container mb-2">About</h2>
+            <p class="font-body-md text-sm text-on-surface-variant leading-relaxed">
+                NGX Chat is a real‑time, encrypted messaging platform designed for the modern cyber frontier. 
+                Built with Flask, Socket.IO, and a neon‑inspired UI, it offers private rooms, typing indicators, 
+                and a sleek terminal aesthetic.
+            </p>
+        </div>
+        
+        <div>
+            <h2 class="font-headline-md text-base text-primary-container mb-2">Features</h2>
+            <ul class="space-y-2">
+                <li class="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-primary-container text-base">check_circle</span>
+                    Real‑time global & private rooms
+                </li>
+                <li class="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-primary-container text-base">check_circle</span>
+                    Typing indicators & online user list
+                </li>
+                <li class="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-primary-container text-base">check_circle</span>
+                    AES‑256 inspired encryption (simulated)
+                </li>
+                <li class="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-primary-container text-base">check_circle</span>
+                    Mobile‑optimised cyberpunk UI
+                </li>
+            </ul>
+        </div>
+        
+        <div>
+            <h2 class="font-headline-md text-base text-primary-container mb-2">Tech Stack</h2>
+            <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-white/5 rounded-full text-[10px] font-mono-code">Flask</span>
+                <span class="px-2 py-1 bg-white/5 rounded-full text-[10px] font-mono-code">Socket.IO</span>
+                <span class="px-2 py-1 bg-white/5 rounded-full text-[10px] font-mono-code">Tailwind CSS</span>
+                <span class="px-2 py-1 bg-white/5 rounded-full text-[10px] font-mono-code">Eventlet</span>
+            </div>
+        </div>
+        
+        <div class="pt-2">
+            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <span class="font-label-caps text-[9px] text-on-surface-variant">STATUS</span>
+                <span class="flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-primary-container rounded-full animate-pulse"></span>
+                    <span class="font-mono-code text-[9px] text-primary-container">OPERATIONAL</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="h-4"></div>
+
+<script>
+    // Optional: log the current user
+    const storedUser = localStorage.getItem('ngx_user_identity');
+    if (storedUser) console.log(`User: ${storedUser}`);
+</script>
+</body>
+</html>
